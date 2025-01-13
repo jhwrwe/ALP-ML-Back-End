@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
 import joblib
-from sklearn.ensemble import GradientBoostingClassifier
 import numpy as np
 import pandas as pd
 from flask_cors import CORS
@@ -17,25 +16,35 @@ def classify():
     data = request.json
     print("Received data:", data)
 
-    if not data:
-        return jsonify({"error": "No input data provided"}), 400
+    if not data or 'features' not in data:
+        return jsonify({"error": "No input data provided or 'features' key missing"}), 400
 
     try:
-        # Features without column names
+        # Extract the 'features' from the request
         features = np.array(data["features"]).reshape(1, -1)
         print("Features to predict with:", features)
 
-        # If your model expects a DataFrame, you can do something like:
+        # Define the column names (features) expected by the model
         feature_names = [
-            "gender", "age", "hypertension", "heart_disease", "marital_status", 
-            "occupation", "residence", "glucose", "bmi", "smoking_status"
+            "gender", "age", "hypertension", "heart_disease", "ever_married", 
+            "Residence_type", "avg_glucose_level", "bmi", "Private", "Self_employed", "Govt_job", 
+            "Never_worked", "children", "formerly_smoked", "never_smoked", "has_smokes", "smoke_Unknown"
         ]
+
+        # Convert the features array to a DataFrame with the expected column names
         features_df = pd.DataFrame(features, columns=feature_names)
 
-        prediction = model.predict(features_df)[0]
-        print("Prediction:", prediction)
+        # Use model.predict_proba() to get the probabilities
+        probabilities = model.predict_proba(features_df)[0]
+        print("Probabilities:", probabilities)
 
-        return jsonify({"prediction": int(prediction)})
+        # The probability for class 1 (index 1)
+        prob_class_1 = probabilities[1]
+        print("Probability of being class 1:", prob_class_1)
+
+        # Return the probability of class 1
+        return jsonify({"probability_class_1": prob_class_1})
+
     except Exception as e:
         print("Error:", str(e))
         return jsonify({"error": str(e)}), 500
