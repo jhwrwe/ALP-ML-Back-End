@@ -42,8 +42,11 @@ def classify():
         prob_class_1 = probabilities[1]
         print("Probability of being class 1:", prob_class_1)
 
-        # Return the probability of class 1
-        return jsonify({"probability_class_1": prob_class_1})
+        # Return the probabilities in the updated format
+        return jsonify({
+            "probabilities": probabilities.tolist(),  # Include the entire probabilities array
+            "probability_class_1": prob_class_1       # Include the probability for class 1
+        })
 
     except Exception as e:
         print("Error:", str(e))
